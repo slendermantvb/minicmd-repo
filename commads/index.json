@@ -1,22 +1,32 @@
 {
+  "repo": "minicmd-repo",
+  "version": "1.2.0",
+  "last_update": "2026-04-25",
+
   "commands": [
     {
       "name": "ls",
       "description": "Lista archivos y carpetas.",
       "category": "legacy",
-      "entry": "main.py"
+      "entry": "main.py",
+      "tags": ["files", "system"],
+      "stable": true
     },
     {
       "name": "mkdir",
       "description": "Crea carpetas.",
       "category": "legacy",
-      "entry": "main.py"
+      "entry": "main.py",
+      "tags": ["files", "create"],
+      "stable": true
     },
     {
       "name": "rename",
       "description": "Renombra archivos o carpetas.",
       "category": "legacy",
-      "entry": "main.py"
+      "entry": "main.py",
+      "tags": ["files", "edit"],
+      "stable": true
     }
   ]
 }
