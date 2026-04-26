@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>MiniCMD</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+html, body {
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    background: #0c0c0c;
+    color: #cccccc;
+    font-family: Consolas, "Courier New", monospace;
+    overflow: hidden;
+}
+
+#terminal {
+    width: 100vw;
+    height: 100vh;
+    padding: 6px 0 0 0;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 16px;
+    line-height: 1.25;
+}
+
+.line {
+    display: flex;
+    align-items: baseline;
+}
+
+.prompt {
+    white-space: pre;
+}
+
+.cmd-input {
+    flex: 1;
+    background: transparent;
+    color: #cccccc;
+    border: none;
+    outline: none;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 16px;
+    padding: 0;
+    margin: 0;
+    caret-color: #cccccc;
+}
+
+.output {
+    white-space: pre-wrap;
+}
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #0c0c0c;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #555;
+}
+</style>
+</head>
+
+<body>
+
+<div id="terminal">
+CMD GHOST [Versión 1.2]
+(c) GHOST COLUMN. Todos los derechos reservados.
+
+</div>
+
+<script>
+const terminal = document.getElementById("terminal");
+
+let currentInput = null;
+let historyList = [];
+let historyIndex = -1;
+let busy = false;
+let currentPrompt = "C:\\system>";
+
+function escapeHtml(text) {
+    return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
+}
+
+function windowsPrompt(path) {
+    if (!path) return "C:\\system>";
+    return path.replace("/system", "C:\\system").replaceAll("/", "\\") + ">";
+}
+
+function scrollBottom() {
+    terminal.scrollTop = terminal.scrollHeight;
+}
+
+function print(text = "") {
+    const output = document.createElement("div");
+    output.className = "output";
+    output.textContent = text;
+    terminal.appendChild(output);
+    scrollBottom();
+}
+
+function createPromptLine(promptText = currentPrompt) {
+    currentPrompt = promptText;
+
+    const line = document.createElement("div");
+    line.className = "line";
+
+    const prompt = document.createElement("span");
+    prompt.className = "prompt";
+    prompt.textContent = promptText;
+
+    const input = document.createElement("input");
+    input.className = "cmd-input";
+    input.autocomplete = "off";
+    input.spellcheck = false;
+
+    line.appendChild(prompt);
+    line.appendChild(input);
+    terminal.appendChild(line);
+
+    currentInput = input;
+    bindInput(input);
+    input.focus();
+    scrollBottom();
+}
+
+function freezeCurrentLine(input, command) {
+    const line = input.closest(".line");
+    if (!line) return;
+
+    const prompt = line.querySelector(".prompt");
+    const promptValue = prompt ? prompt.textContent : currentPrompt;
+
+    line.innerHTML = "";
+
+    const frozen = document.createElement("span");
+    frozen.className = "prompt";
+    frozen.textContent = promptValue + command;
+
+    line.appendChild(frozen);
+}
+
+function clearTerminal() {
+    terminal.innerHTML = "";
+    createPromptLine(currentPrompt);
+}
+
+async function runCommand(command, inputElement) {
+    if (busy) return;
+
+    busy = true;
+
+    const input = inputElement || currentInput;
+
+    if (!input) {
+        busy = false;
+        return;
+    }
+
+    input.disabled = true;
+
+    if (command.length > 0) {
+        historyList.push(command);
+        historyIndex = historyList.length;
+    }
+
+    freezeCurrentLine(input, command);
+
+    if (command.toLowerCase() === "cls" || command.toLowerCase() === "clear") {
+        terminal.innerHTML = "";
+        createPromptLine(currentPrompt);
+        busy = false;
+        return;
+    }
+
+    try {
+        const response = await fetch("/run", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ command })
+        });
+
+        if (!response.ok) {
+            throw new Error("Respuesta inválida del servidor");
+        }
+
+        const data = await response.json();
+
+        if (data.output === "__CLS__") {
+            terminal.innerHTML = "";
+        } else if (data.output) {
+            print(data.output);
+        }
+
+        currentPrompt = windowsPrompt(data.prompt || "/system");
+        createPromptLine(currentPrompt);
+
+    } catch (error) {
+        print("Error: no se pudo conectar con app.py");
+        createPromptLine(currentPrompt);
+    }
+
+    busy = false;
+    scrollBottom();
+}
+
+function bindInput(input) {
+    input.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+
+            const command = input.value.trim();
+            runCommand(command, input);
+            return;
+        }
+
+        if (e.key === "ArrowUp") {
+            e.preventDefault();
+
+            if (historyList.length === 0) return;
+
+            historyIndex = Math.max(0, historyIndex - 1);
+            input.value = historyList[historyIndex] || "";
+            return;
+        }
+
+        if (e.key === "ArrowDown") {
+            e.preventDefault();
+
+            if (historyList.length === 0) return;
+
+            historyIndex = Math.min(historyList.length, historyIndex + 1);
+            input.value = historyIndex === historyList.length ? "" : historyList[historyIndex];
+            return;
+        }
+
+        if (e.ctrlKey && e.key.toLowerCase() === "l") {
+            e.preventDefault();
+            clearTerminal();
+            return;
+        }
+    });
+}
+
+document.body.addEventListener("click", () => {
+    if (currentInput) currentInput.focus();
+});
+
+createPromptLine(currentPrompt);
+</script>
+
+</body>
+</html>

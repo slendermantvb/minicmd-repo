@@ -1,0 +1,11 @@
+{
+  "name": "ls",
+  "version": "2026-04-25",
+  "author": "desconocido",
+  "description": "Lista archivos y carpetas del directorio actual.",
+  "entry": "main.py",
+  "sha256": "269601f7135332e8bfce9700bc2c276f275144cc6d9af2b030a8077115215f36",
+  "category": "legacy",
+  "legacy": true,
+  "updated_date": "2026-04-25"
+}

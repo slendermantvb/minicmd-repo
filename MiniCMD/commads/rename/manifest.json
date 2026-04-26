@@ -1,0 +1,11 @@
+{
+  "name": "rename",
+  "version": "2026-04-25",
+  "author": "desconocido",
+  "description": "Renombra archivo o carpeta. Uso: rename <old> <new>",
+  "entry": "main.py",
+  "sha256": "5a236babdb2bb7dfbd967c4360dc48cfdcb2f67600345b9bddbcbb5dbcb6f55c",
+  "category": "legacy",
+  "legacy": true,
+  "updated_date": "2026-04-25"
+}

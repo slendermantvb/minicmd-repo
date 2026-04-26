@@ -1,0 +1,11 @@
+{
+  "name": "mkdir",
+  "version": "2026-04-25",
+  "author": "desconocido",
+  "description": "Crea una carpeta. Uso: mkdir <nombre>",
+  "entry": "main.py",
+  "sha256": "fad95c9e0fa3a9ffbfecf64417800a0949b871fb03fb94300a02fc1db41be041",
+  "category": "legacy",
+  "legacy": true,
+  "updated_date": "2026-04-25"
+}
