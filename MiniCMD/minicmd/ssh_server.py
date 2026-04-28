@@ -8,6 +8,36 @@ from .auth import auth
 from .state import MiniCMDState
 from .fs import prompt_path
 
+KEX_ALGS = [
+    'curve25519-sha256',
+    'curve25519-sha256@libssh.org',
+    'ecdh-sha2-nistp256',
+    'ecdh-sha2-nistp384',
+    'diffie-hellman-group14-sha256',
+    'diffie-hellman-group16-sha512',
+]
+
+ENCRYPTION_ALGS = [
+    'chacha20-poly1305@openssh.com',
+    'aes128-gcm@openssh.com',
+    'aes256-gcm@openssh.com',
+    'aes128-ctr',
+    'aes256-ctr',
+]
+
+MAC_ALGS = [
+    'hmac-sha2-256-etm@openssh.com',
+    'hmac-sha2-512-etm@openssh.com',
+    'hmac-sha2-256',
+    'hmac-sha2-512',
+]
+
+SIGNATURE_ALGS = [
+    'ssh-ed25519',
+    'rsa-sha2-512',
+    'rsa-sha2-256',
+]
+
 
 def _peer_ip(conn):
     try:
@@ -30,7 +60,10 @@ def _allow_no_password(conn):
 
 def ensure_host_key():
     if not HOST_KEY_FILE.exists():
-        key = asyncssh.generate_private_key('ssh-rsa')
+        try:
+            key = asyncssh.generate_private_key('ssh-ed25519')
+        except Exception:
+            key = asyncssh.generate_private_key('ssh-rsa', 3072)
         HOST_KEY_FILE.write_text(key.export_private_key().decode('utf-8'), encoding='utf-8')
     return str(HOST_KEY_FILE)
 
@@ -195,6 +228,10 @@ async def _run():
         SSH_PORT,
         server_host_keys=[key_file],
         session_factory=Session,
+        kex_algs=KEX_ALGS,
+        encryption_algs=ENCRYPTION_ALGS,
+        mac_algs=MAC_ALGS,
+        signature_algs=SIGNATURE_ALGS,
     )
     await asyncio.Future()
 
@@ -205,4 +242,5 @@ def start():
     print(f'Puerto: {SSH_PORT}')
     print(f'No-password: {SSH_NO_PASSWORD} scope={SSH_NO_PASSWORD_SCOPE}')
     print(f'Conectar: ssh {SSH_USER}@127.0.0.1 -p {SSH_PORT}')
+    print('Si cambiaste host key vieja, borra MiniCMD/minicmd_ssh_host_key y reinicia.')
     asyncio.run(_run())
