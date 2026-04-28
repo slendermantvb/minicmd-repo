@@ -43,9 +43,9 @@ def telnet_cmd(*items):
 
 
 async def setup_telnet(writer):
-    # Deja el eco del lado del cliente para evitar letras duplicadas.
-    # Tambien activa suppress-go-ahead para una terminal mas limpia.
-    writer.write(telnet_cmd(WONT, ECHO))
+    # El servidor hace eco para que clientes sin eco local muestren texto.
+    # Si el cliente acepta WILL ECHO, evita letras invisibles.
+    writer.write(telnet_cmd(WILL, ECHO))
     writer.write(telnet_cmd(WILL, SUPPRESS_GO_AHEAD))
     await writer.drain()
 
@@ -94,7 +94,9 @@ async def read_line(reader, writer, hidden=False):
             if ch == '\x7f' or ch == '\b':
                 if buf:
                     buf = buf[:-1]
-                    # No hacemos eco aqui; el cliente Telnet ya lo maneja.
+                    if not hidden:
+                        writer.write(b'\b \b')
+                        await writer.drain()
             elif ch == '\x03':
                 buf = ''
                 await write(writer, '^C')
@@ -102,7 +104,9 @@ async def read_line(reader, writer, hidden=False):
             else:
                 if len(buf) < MAX_LINE:
                     buf += ch
-                # No reenviar caracter: evita aaddmmiinn.
+                    if not hidden:
+                        writer.write(ch.encode('utf-8', errors='replace'))
+                        await writer.drain()
 
 
 async def login(reader, writer, peer):
