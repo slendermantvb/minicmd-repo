@@ -48,6 +48,11 @@ def execute(command, state):
             'Usuarios:',
             '  users, groups, groupadd <grupo>, useradd <user> <pass> [grupo]',
             '',
+            'APT:',
+            '  apt list',
+            '  sudo 1234',
+            '  sudo apt install <comando>',
+            '',
             'Legacy:',
             '  comandos en commads/<comando>/main.py funcionan igual',
         ]
@@ -55,6 +60,7 @@ def execute(command, state):
 
     try:
         for handler in (
+            lambda: run_apt(cmd, args, state),
             lambda: run_system(cmd, args, state, user_info, user_groups),
             lambda: run_users(cmd, args, state),
             lambda: run_files(cmd, args, state, user_info, user_groups),
