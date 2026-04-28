@@ -1,4 +1,5 @@
-from .users_store import load_users
+from .permissions import is_admin
+from .users_store import load_users, save_users, user_info
 
 
 def run_users(cmd, args, state):
@@ -15,4 +16,13 @@ def run_users(cmd, args, state):
         for group, members in users.get('groups', {}).items():
             lines.append(f"{group}: {', '.join(members)}")
         return '\n'.join(lines)
+    if cmd == 'groupadd':
+        if len(args) != 1:
+            return 'Uso: groupadd <grupo>'
+        if not is_admin(state, user_info):
+            return 'Solo admin/sudo puede crear grupos.'
+        users = load_users()
+        users.setdefault('groups', {}).setdefault(args[0], [])
+        save_users(users)
+        return f'Grupo creado: {args[0]}'
     return None
