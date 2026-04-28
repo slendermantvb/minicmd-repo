@@ -28,3 +28,9 @@ SSH_PASSWORD = os.environ.get("MINICMD_SSH_PASSWORD", "minicmd123")
 SUDO_PASSWORD = os.environ.get("MINICMD_SUDO_PASSWORD", "1234")
 MAX_COMMAND_LEN = int(os.environ.get("MINICMD_MAX_COMMAND_LEN", "4096"))
 GITHUB_RAW_BASE = os.environ.get("MINICMD_REPO_RAW", "https://raw.githubusercontent.com/animix-software/minicmd-repo/main/commads")
+
+# Solo para pruebas. Por defecto esta apagado.
+# local: permite entrar sin password solo desde 127.0.0.1 / ::1.
+# unsafe: permite sin password desde cualquier IP. No recomendado.
+SSH_NO_PASSWORD = os.environ.get("MINICMD_SSH_NO_PASSWORD", "0").lower() in ["1", "true", "yes", "on"]
+SSH_NO_PASSWORD_SCOPE = os.environ.get("MINICMD_SSH_NO_PASSWORD_SCOPE", "local").lower()
